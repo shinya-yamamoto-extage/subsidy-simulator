@@ -1,0 +1,1016 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>リスキリング助成金 シミュレーター</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Helvetica Neue', 'Hiragino Sans', 'Noto Sans JP', sans-serif;
+    background: #f5f7fa;
+    color: #1a1a2e;
+    line-height: 1.7;
+  }
+
+  .hero {
+    background: linear-gradient(135deg, #0a1628 0%, #1b3a6b 100%);
+    color: #fff;
+    text-align: center;
+    padding: 60px 20px 50px;
+  }
+  .hero h1 {
+    font-size: clamp(1.6rem, 4vw, 2.4rem);
+    font-weight: 800;
+    margin-bottom: 16px;
+  }
+  .hero h1 span { color: #f5c518; }
+  .hero p {
+    font-size: clamp(0.9rem, 2vw, 1.05rem);
+    opacity: 0.85;
+    max-width: 640px;
+    margin: 0 auto;
+  }
+  .hero .tax-note {
+    display: inline-block;
+    margin-top: 14px;
+    padding: 5px 18px;
+    background: rgba(245,197,24,0.15);
+    border: 1px solid rgba(245,197,24,0.4);
+    border-radius: 20px;
+    font-size: 0.82rem;
+    color: #f5c518;
+    font-weight: 700;
+  }
+
+  .container {
+    max-width: 1100px;
+    margin: -30px auto 60px;
+    padding: 0 16px;
+  }
+
+  .card {
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+    padding: 36px 32px;
+    margin-bottom: 24px;
+  }
+  .card h2 {
+    font-size: 1.2rem;
+    color: #1b3a6b;
+    margin-bottom: 24px;
+    padding-bottom: 12px;
+    border-bottom: 3px solid #f5c518;
+    display: inline-block;
+  }
+
+  .columns {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-bottom: 24px;
+  }
+  .column-card {
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+    padding: 32px 28px;
+  }
+  .plan-label {
+    display: inline-block;
+    padding: 4px 14px;
+    border-radius: 20px;
+    font-size: 0.78rem;
+    font-weight: 800;
+    margin-bottom: 16px;
+  }
+  .plan-a .plan-label { background: #1b3a6b; color: #fff; }
+  .plan-b .plan-label { background: #f5c518; color: #1a1a2e; }
+
+  .form-group {
+    margin-bottom: 20px;
+  }
+  .form-group > label {
+    display: block;
+    font-weight: 700;
+    font-size: 0.9rem;
+    margin-bottom: 6px;
+    color: #1b3a6b;
+  }
+
+  .radio-group {
+    display: flex;
+    gap: 10px;
+  }
+  .radio-group label {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 12px;
+    border: 2px solid #d0d7e3;
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: 700;
+    font-size: 0.9rem;
+    transition: all 0.2s;
+    text-align: center;
+  }
+  .radio-group input[type="radio"] { display: none; }
+  .radio-group label:has(input:checked) {
+    border-color: #1b3a6b;
+    background: #eef2f9;
+    box-shadow: 0 0 0 1px #1b3a6b;
+  }
+
+  input[type="number"], input[type="text"] {
+    width: 100%;
+    padding: 12px 14px;
+    border: 2px solid #d0d7e3;
+    border-radius: 10px;
+    font-size: 1rem;
+    transition: border-color 0.2s;
+    -moz-appearance: textfield;
+  }
+  input:focus { outline: none; border-color: #1b3a6b; }
+  .input-with-unit { position: relative; }
+  .input-with-unit .unit {
+    position: absolute; right: 14px; top: 50%; transform: translateY(-50%);
+    color: #888; font-weight: 600; pointer-events: none; font-size: 0.9rem;
+  }
+  .input-with-unit input { padding-right: 46px; }
+
+  /* svc-field内ではlabelがある分ずれるので、inputのラッパーで位置を取る */
+  .svc-field.input-with-unit {
+    position: static;
+  }
+  .svc-field.input-with-unit .svc-input-wrap {
+    position: relative;
+  }
+  .svc-field.input-with-unit .svc-input-wrap .unit {
+    position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+    color: #888; font-weight: 600; pointer-events: none; font-size: 0.85rem;
+  }
+  .svc-field.input-with-unit .svc-input-wrap input {
+    padding-right: 50px;
+  }
+
+  .custom-cost-input { margin-top: 10px; display: none; }
+  .custom-cost-input.show { display: block; }
+
+  /* ===== Service items - stacked layout ===== */
+  .service-item {
+    background: #f8f9fc;
+    border: 1px solid #e8ecf2;
+    border-radius: 10px;
+    padding: 12px 14px;
+    margin-bottom: 10px;
+    position: relative;
+  }
+  .svc-row-name {
+    margin-bottom: 8px;
+  }
+  .svc-row-name input {
+    padding: 10px 12px;
+    font-size: 0.92rem;
+    font-weight: 600;
+  }
+  .svc-row-nums {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+  .svc-field {
+    flex: 1;
+  }
+  .svc-field-label {
+    font-size: 0.7rem;
+    color: #888;
+    font-weight: 700;
+    margin-bottom: 3px;
+  }
+  .svc-field input {
+    padding: 8px 40px 8px 10px;
+    font-size: 0.9rem;
+  }
+  .svc-field.months { flex: 0 0 72px; }
+  .svc-field.months input { padding: 8px 10px; text-align: center; }
+  .svc-total-display {
+    flex: 0 0 auto;
+    text-align: right;
+    padding-top: 16px;
+    font-size: 0.9rem;
+    font-weight: 800;
+    color: #1b3a6b;
+    white-space: nowrap;
+    min-width: 70px;
+  }
+  .service-item .btn-remove {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 28px; height: 28px;
+    border: none; background: #fee; color: #c0392b;
+    border-radius: 6px; cursor: pointer; font-size: 1rem; font-weight: 700;
+    transition: background 0.2s; line-height: 1;
+  }
+  .service-item .btn-remove:hover { background: #fdd; }
+
+  .btn-add {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 8px 16px; background: #eef2f9; color: #1b3a6b;
+    border: 2px dashed #b0bdd0; border-radius: 10px; cursor: pointer;
+    font-size: 0.82rem; font-weight: 700; transition: all 0.2s; margin-top: 4px;
+  }
+  .btn-add:hover { background: #dde5f2; border-color: #1b3a6b; }
+
+  .section-label {
+    font-weight: 700; font-size: 0.9rem; color: #1b3a6b;
+    margin: 20px 0 10px; padding-top: 16px; border-top: 1px solid #eee;
+  }
+  .service-note {
+    font-size: 0.78rem; color: #888; margin-bottom: 10px;
+  }
+
+  .btn-calc {
+    display: block; width: 100%; padding: 18px;
+    background: linear-gradient(135deg, #1b3a6b, #0a1628);
+    color: #fff; border: none; border-radius: 12px;
+    font-size: 1.15rem; font-weight: 800; cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.15s; letter-spacing: 0.05em;
+  }
+  .btn-calc:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(27,58,107,0.35); }
+  .btn-calc:active { transform: translateY(0); }
+
+  /* ===== Results ===== */
+  .result-area {
+    display: none;
+    margin-top: 24px;
+    animation: fadeUp 0.5s ease;
+  }
+  .result-area.show { display: block; }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .result-columns {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-bottom: 24px;
+  }
+  .result-col {
+    background: linear-gradient(135deg, #0a1628 0%, #1b3a6b 100%);
+    color: #fff;
+    border-radius: 16px;
+    padding: 32px 24px;
+    text-align: center;
+  }
+  .result-plan-label {
+    display: inline-block;
+    padding: 4px 16px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 800;
+    margin-bottom: 20px;
+  }
+  .result-col:nth-child(1) .result-plan-label { background: rgba(255,255,255,0.15); color: #fff; }
+  .result-col:nth-child(2) .result-plan-label { background: #f5c518; color: #1a1a2e; }
+
+  .r-label { font-size: 0.82rem; opacity: 0.65; margin-bottom: 2px; }
+  .r-value { font-size: 1rem; font-weight: 700; margin-bottom: 14px; }
+  .r-value.accent {
+    font-size: clamp(1.6rem, 4vw, 2.2rem);
+    color: #f5c518;
+    margin-bottom: 6px;
+  }
+  .r-divider { border: none; border-top: 1px solid rgba(255,255,255,0.12); margin: 18px 0; }
+
+  .r-services { text-align: left; margin-top: 12px; }
+  .r-services h4 { font-size: 0.88rem; margin-bottom: 8px; color: #f5c518; }
+  .r-svc-item {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 5px 0; border-bottom: 1px solid rgba(255,255,255,0.06); font-size: 0.82rem;
+  }
+  .r-svc-item:last-child { border: none; }
+  .r-svc-total {
+    display: flex; justify-content: space-between;
+    font-weight: 700; font-size: 0.88rem;
+    border-top: 1px solid rgba(255,255,255,0.18);
+    margin-top: 6px; padding-top: 10px;
+  }
+
+  .subsidy-breakdown {
+    text-align: left;
+    background: rgba(255,255,255,0.06);
+    border-radius: 10px;
+    padding: 14px 16px;
+    margin-bottom: 16px;
+  }
+  .subsidy-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.85rem;
+    padding: 3px 0;
+  }
+  .subsidy-row.total {
+    border-top: 1px solid rgba(255,255,255,0.15);
+    margin-top: 6px; padding-top: 8px;
+    font-weight: 800; font-size: 0.95rem;
+  }
+
+  /* Pool / Excess badges */
+  .pool-badge {
+    display: inline-block;
+    margin-top: 10px;
+    padding: 8px 18px;
+    border-radius: 10px;
+    font-size: 0.88rem;
+    font-weight: 700;
+  }
+  .pool-badge.pool {
+    background: rgba(46,204,113,0.15);
+    border: 1px solid rgba(46,204,113,0.4);
+    color: #2ecc71;
+  }
+  .pool-badge.excess {
+    background: rgba(231,76,60,0.15);
+    border: 1px solid rgba(231,76,60,0.4);
+    color: #e74c3c;
+  }
+
+  /* Diff bar */
+  .diff-card {
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+    padding: 28px 32px;
+    text-align: center;
+    margin-bottom: 24px;
+  }
+  .diff-card h3 { font-size: 1rem; color: #1b3a6b; margin-bottom: 20px; }
+  .diff-bar-wrap {
+    display: flex; gap: 4px; height: 52px;
+    border-radius: 10px; overflow: hidden; margin-bottom: 16px;
+  }
+  .diff-bar {
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: 0.85rem; color: #fff;
+    transition: width 0.6s ease; min-width: 80px;
+  }
+  .diff-bar.bar-a { background: #1b3a6b; }
+  .diff-bar.bar-b { background: #f5c518; color: #1a1a2e; }
+  .diff-labels {
+    display: flex; justify-content: space-between;
+    font-size: 0.85rem; color: #666;
+  }
+  .diff-savings {
+    margin-top: 16px; font-size: 1.05rem; font-weight: 700; color: #1b3a6b;
+  }
+  .diff-savings strong { color: #c0392b; }
+
+  .result-message-full {
+    padding: 24px;
+    background: linear-gradient(135deg, #0a1628 0%, #1b3a6b 100%);
+    color: #fff; border-radius: 16px;
+    font-size: 1rem; line-height: 1.9; text-align: left;
+    margin-bottom: 24px;
+  }
+  .result-message-full strong { color: #f5c518; }
+
+  /* Checklist */
+  .checklist-card {
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+    padding: 32px;
+    margin-bottom: 24px;
+  }
+  .checklist-card h3 {
+    font-size: 1.1rem;
+    color: #1b3a6b;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 3px solid #f5c518;
+    display: inline-block;
+  }
+  .checklist-item {
+    display: flex;
+    gap: 12px;
+    padding: 12px 0;
+    border-bottom: 1px solid #eee;
+    align-items: flex-start;
+    font-size: 0.92rem;
+    line-height: 1.6;
+  }
+  .checklist-item:last-child { border: none; }
+  .checklist-item input[type="checkbox"] {
+    width: 20px; height: 20px; margin-top: 3px; flex-shrink: 0;
+    accent-color: #1b3a6b; cursor: pointer;
+  }
+  .checklist-item .cl-text { flex: 1; }
+  .checklist-item .cl-sub {
+    margin-top: 6px;
+    padding-left: 16px;
+    font-size: 0.85rem;
+    color: #555;
+  }
+  .checklist-item .cl-sub label {
+    display: flex; align-items: flex-start; gap: 8px;
+    margin-bottom: 4px; cursor: pointer;
+  }
+  .checklist-item .cl-sub input[type="checkbox"] {
+    width: 16px; height: 16px; margin-top: 2px;
+  }
+
+  /* PDF button */
+  .btn-pdf {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 14px 32px;
+    background: #1b3a6b; color: #fff;
+    border: none; border-radius: 10px;
+    font-size: 1rem; font-weight: 700;
+    cursor: pointer; transition: all 0.2s;
+    margin-top: 8px;
+  }
+  .btn-pdf:hover { background: #0a1628; }
+  .btn-pdf svg { width: 18px; height: 18px; fill: currentColor; }
+  .pdf-wrap { text-align: center; margin-bottom: 40px; }
+
+  @media print {
+    body { background: #fff; }
+    .hero { padding: 30px 20px 25px; }
+    .container { margin-top: 0; }
+    .btn-calc, .btn-add, .btn-remove, .btn-pdf, .pdf-wrap { display: none !important; }
+    .card, .column-card, .checklist-card, .diff-card { box-shadow: none; break-inside: avoid; }
+    .result-area { display: block !important; }
+    .columns, .result-columns { gap: 16px; }
+  }
+
+  @media (max-width: 768px) {
+    .columns { grid-template-columns: 1fr; }
+    .result-columns { grid-template-columns: 1fr; }
+    .column-card { padding: 24px 18px; }
+    .radio-group { flex-direction: column; gap: 6px; }
+    .svc-row-nums { flex-wrap: wrap; }
+    .svc-field.months { flex: 0 0 60px; }
+    .result-col { padding: 24px 18px; }
+    .diff-card { padding: 20px 16px; }
+    .checklist-card { padding: 24px 18px; }
+  }
+</style>
+</head>
+<body>
+
+<section class="hero">
+  <h1>リスキリング助成金<br><span>かんたんシミュレーター</span></h1>
+  <p>2つのプランを並べて比較。どちらがお得か一目でわかります。</p>
+  <div class="tax-note">※ 本シミュレーションの金額はすべて税込表示です</div>
+</section>
+
+<div class="container">
+
+  <!-- 企業規模 -->
+  <div class="card">
+    <h2>企業規模を選択</h2>
+    <div class="form-group">
+      <div class="radio-group">
+        <label>
+          <input type="radio" name="companySize" value="sme" checked>
+          <span>中小企業</span>
+        </label>
+        <label>
+          <input type="radio" name="companySize" value="large">
+          <span>大企業</span>
+        </label>
+      </div>
+    </div>
+    <div style="background:#eef2f9; border-radius:10px; padding:14px 18px; font-size:0.82rem; color:#1b3a6b; margin-top:4px;">
+      <strong>【助成内訳】</strong><br>
+      ■ 経費助成：中小企業 75%（上限30万円/人）｜大企業 60%（上限20万円/人）<br>
+      ■ 賃金助成：中小企業 1,000円×10時間/人 ｜大企業 500円×10時間/人
+    </div>
+
+    <details style="margin-top:12px; font-size:0.85rem; color:#1b3a6b;">
+      <summary style="cursor:pointer; font-weight:700; padding:10px 0; user-select:none;">▶ 中小企業と大企業の区別について</summary>
+      <div style="background:#eef2f9; border-radius:10px; padding:16px 18px; margin-top:6px; line-height:1.8;">
+        <p>原則、以下の<strong>いずれかに該当</strong>する場合は「中小企業」として扱われます。</p>
+        <div style="display:flex; gap:12px; margin:12px 0; flex-wrap:wrap;">
+          <div style="flex:1; min-width:160px; background:#fff; border-radius:8px; padding:14px; text-align:center;">
+            <div style="font-size:0.78rem; opacity:0.7;">条件①</div>
+            <div style="font-size:1.1rem; font-weight:800; margin-top:4px;">従業員 50名以下</div>
+          </div>
+          <div style="flex:1; min-width:160px; background:#fff; border-radius:8px; padding:14px; text-align:center;">
+            <div style="font-size:0.78rem; opacity:0.7;">条件②</div>
+            <div style="font-size:1.1rem; font-weight:800; margin-top:4px;">資本金 5,000万円以下</div>
+          </div>
+        </div>
+        <p style="font-size:0.82rem; color:#555; margin-top:8px;">※ 業界によって一部条件が変動する場合があります。<br>
+        ※ 資本金を持たない事業者（医療法人、学校法人、社会福祉法人、労働組合、公益財団法人など）は、従業員の雇用数によって判断されます。</p>
+        <p style="font-size:0.82rem; color:#c0392b; font-weight:700; margin-top:10px;">ご不明な点は担当までお問い合わせください。</p>
+      </div>
+    </details>
+  </div>
+
+  <!-- Plan inputs -->
+  <div class="columns">
+
+    <!-- Plan A -->
+    <div class="column-card plan-a">
+      <div class="plan-label">プラン A</div>
+
+      <div class="form-group">
+        <label>助成対象人数</label>
+        <div class="input-with-unit">
+          <input type="number" id="numPeople_a" min="1" value="5" placeholder="例: 5">
+          <span class="unit">名</span>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>1人あたりの研修費用（税込）</label>
+        <div class="radio-group" style="margin-bottom:0;">
+          <label>
+            <input type="radio" name="costType_a" value="400000" checked onchange="toggleCustomCost('a')">
+            <span>40万円</span>
+          </label>
+          <label>
+            <input type="radio" name="costType_a" value="custom" onchange="toggleCustomCost('a')">
+            <span>その他</span>
+          </label>
+        </div>
+        <div class="custom-cost-input" id="customCost_a">
+          <div class="input-with-unit" style="margin-top:10px;">
+            <input type="number" id="trainingCost_a" min="0" step="10000" value="500000" placeholder="金額を入力">
+            <span class="unit">円</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-label">提供サービス（税込）</div>
+      <div class="service-note">サービス名・単価（万円）・利用月数を入力</div>
+      <div class="service-list" id="serviceList_a">
+        <div class="service-item">
+          <button class="btn-remove" onclick="removeService(this)" title="削除">×</button>
+          <div class="svc-row-name">
+            <input type="text" placeholder="サービス名" value="DXリスキリング研修">
+          </div>
+          <div class="svc-row-nums">
+            <div class="svc-field input-with-unit">
+              <div class="svc-field-label">単価</div>
+              <div class="svc-input-wrap">
+                <input type="number" min="0" step="1" placeholder="万円" value="30" oninput="updateSvcTotal(this)">
+                <span class="unit">万円</span>
+              </div>
+            </div>
+            <div class="svc-field months">
+              <div class="svc-field-label">月数</div>
+              <input type="number" min="1" value="1" placeholder="月" oninput="updateSvcTotal(this)">
+            </div>
+            <div class="svc-total-display">= 30万円</div>
+          </div>
+        </div>
+        <div class="service-item">
+          <button class="btn-remove" onclick="removeService(this)" title="削除">×</button>
+          <div class="svc-row-name">
+            <input type="text" placeholder="サービス名" value="SNS運用コンサルティング">
+          </div>
+          <div class="svc-row-nums">
+            <div class="svc-field input-with-unit">
+              <div class="svc-field-label">単価</div>
+              <div class="svc-input-wrap">
+                <input type="number" min="0" step="1" placeholder="万円" value="10" oninput="updateSvcTotal(this)">
+                <span class="unit">万円</span>
+              </div>
+            </div>
+            <div class="svc-field months">
+              <div class="svc-field-label">月数</div>
+              <input type="number" min="1" value="1" placeholder="月" oninput="updateSvcTotal(this)">
+            </div>
+            <div class="svc-total-display">= 10万円</div>
+          </div>
+        </div>
+      </div>
+      <button class="btn-add" onclick="addService('serviceList_a')">＋ サービスを追加</button>
+    </div>
+
+    <!-- Plan B -->
+    <div class="column-card plan-b">
+      <div class="plan-label">プラン B</div>
+
+      <div class="form-group">
+        <label>助成対象人数</label>
+        <div class="input-with-unit">
+          <input type="number" id="numPeople_b" min="1" value="10" placeholder="例: 10">
+          <span class="unit">名</span>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>1人あたりの研修費用（税込）</label>
+        <div class="radio-group" style="margin-bottom:0;">
+          <label>
+            <input type="radio" name="costType_b" value="400000" checked onchange="toggleCustomCost('b')">
+            <span>40万円</span>
+          </label>
+          <label>
+            <input type="radio" name="costType_b" value="custom" onchange="toggleCustomCost('b')">
+            <span>その他</span>
+          </label>
+        </div>
+        <div class="custom-cost-input" id="customCost_b">
+          <div class="input-with-unit" style="margin-top:10px;">
+            <input type="number" id="trainingCost_b" min="0" step="10000" value="600000" placeholder="金額を入力">
+            <span class="unit">円</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-label">提供サービス（税込）</div>
+      <div class="service-note">サービス名・単価（万円）・利用月数を入力</div>
+      <div class="service-list" id="serviceList_b">
+        <div class="service-item">
+          <button class="btn-remove" onclick="removeService(this)" title="削除">×</button>
+          <div class="svc-row-name">
+            <input type="text" placeholder="サービス名" value="DXリスキリング研修">
+          </div>
+          <div class="svc-row-nums">
+            <div class="svc-field input-with-unit">
+              <div class="svc-field-label">単価</div>
+              <div class="svc-input-wrap">
+                <input type="number" min="0" step="1" placeholder="万円" value="40" oninput="updateSvcTotal(this)">
+                <span class="unit">万円</span>
+              </div>
+            </div>
+            <div class="svc-field months">
+              <div class="svc-field-label">月数</div>
+              <input type="number" min="1" value="1" placeholder="月" oninput="updateSvcTotal(this)">
+            </div>
+            <div class="svc-total-display">= 40万円</div>
+          </div>
+        </div>
+        <div class="service-item">
+          <button class="btn-remove" onclick="removeService(this)" title="削除">×</button>
+          <div class="svc-row-name">
+            <input type="text" placeholder="サービス名" value="SNS運用コンサルティング">
+          </div>
+          <div class="svc-row-nums">
+            <div class="svc-field input-with-unit">
+              <div class="svc-field-label">単価</div>
+              <div class="svc-input-wrap">
+                <input type="number" min="0" step="1" placeholder="万円" value="10" oninput="updateSvcTotal(this)">
+                <span class="unit">万円</span>
+              </div>
+            </div>
+            <div class="svc-field months">
+              <div class="svc-field-label">月数</div>
+              <input type="number" min="1" value="1" placeholder="月" oninput="updateSvcTotal(this)">
+            </div>
+            <div class="svc-total-display">= 10万円</div>
+          </div>
+        </div>
+        <div class="service-item">
+          <button class="btn-remove" onclick="removeService(this)" title="削除">×</button>
+          <div class="svc-row-name">
+            <input type="text" placeholder="サービス名" value="SEO対策サポート">
+          </div>
+          <div class="svc-row-nums">
+            <div class="svc-field input-with-unit">
+              <div class="svc-field-label">単価</div>
+              <div class="svc-input-wrap">
+                <input type="number" min="0" step="1" placeholder="万円" value="15" oninput="updateSvcTotal(this)">
+                <span class="unit">万円</span>
+              </div>
+            </div>
+            <div class="svc-field months">
+              <div class="svc-field-label">月数</div>
+              <input type="number" min="1" value="1" placeholder="月" oninput="updateSvcTotal(this)">
+            </div>
+            <div class="svc-total-display">= 15万円</div>
+          </div>
+        </div>
+      </div>
+      <button class="btn-add" onclick="addService('serviceList_b')">＋ サービスを追加</button>
+    </div>
+
+  </div>
+
+  <button class="btn-calc" onclick="calculate()">比較結果を見る</button>
+
+  <!-- ===== Results ===== -->
+  <div class="result-area" id="resultArea">
+    <div class="result-columns" id="resultColumns"></div>
+    <div class="diff-card" id="diffCard"></div>
+    <div class="result-message-full" id="resMessage"></div>
+
+    <!-- Checklist -->
+    <div class="checklist-card">
+      <h3>助成金申請 確認チェックリスト</h3>
+
+      <div class="checklist-item">
+        <input type="checkbox" id="cl1">
+        <div class="cl-text">
+          <label for="cl1">パート・アルバイトの方が雇用保険に加入しているかどうか</label>
+        </div>
+      </div>
+
+      <div class="checklist-item">
+        <input type="checkbox" id="cl2">
+        <div class="cl-text">
+          <label for="cl2">残業時間・勤務時間外・休日出勤として以外の日程で研修を設定できているかどうか</label>
+        </div>
+      </div>
+
+      <div class="checklist-item">
+        <input type="checkbox" id="cl3">
+        <div class="cl-text">
+          <label for="cl3">原則1箇所で研修を受けることができるかどうか</label>
+          <div class="cl-sub">
+            <label>
+              <input type="checkbox" id="cl3a">
+              1箇所で研修を受けられない場合、事業所登録をしている拠点で受けることが可能かどうか
+            </label>
+            <label>
+              <input type="checkbox" id="cl3b">
+              リモートで受ける場合、リモートワーク契約を締結しているかどうか
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div class="checklist-item">
+        <input type="checkbox" id="cl4">
+        <div class="cl-text">
+          <label for="cl4">研修費用のお支払いは、研修が始まる日までにお振込みいただくこと</label>
+        </div>
+      </div>
+
+      <div class="checklist-item">
+        <input type="checkbox" id="cl5">
+        <div class="cl-text">
+          <label for="cl5">各研修、8割以上の時間を受講しないと助成対象にならない点について、了承をいただいているかどうか</label>
+        </div>
+      </div>
+    </div>
+
+    <div class="pdf-wrap">
+      <button class="btn-pdf" onclick="exportPDF()">
+        <svg viewBox="0 0 24 24"><path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20M12,19L8,15H10.5V12H13.5V15H16L12,19Z"/></svg>
+        PDFとして保存
+      </button>
+    </div>
+
+  </div>
+
+</div>
+
+<script>
+function toggleCustomCost(suffix) {
+  const selected = document.querySelector(`input[name="costType_${suffix}"]:checked`).value;
+  const customDiv = document.getElementById('customCost_' + suffix);
+  customDiv.classList.toggle('show', selected === 'custom');
+}
+
+function getTrainingCost(suffix) {
+  const selected = document.querySelector(`input[name="costType_${suffix}"]:checked`).value;
+  if (selected === 'custom') {
+    return parseInt(document.getElementById('trainingCost_' + suffix).value) || 0;
+  }
+  return 400000;
+}
+
+function addService(listId) {
+  const list = document.getElementById(listId);
+  const item = document.createElement('div');
+  item.className = 'service-item';
+  item.innerHTML = `
+    <button class="btn-remove" onclick="removeService(this)" title="削除">×</button>
+    <div class="svc-row-name">
+      <input type="text" placeholder="サービス名">
+    </div>
+    <div class="svc-row-nums">
+      <div class="svc-field input-with-unit">
+        <div class="svc-field-label">単価</div>
+        <div class="svc-input-wrap">
+          <input type="number" min="0" step="1" placeholder="万円" oninput="updateSvcTotal(this)">
+          <span class="unit">万円</span>
+        </div>
+      </div>
+      <div class="svc-field months">
+        <div class="svc-field-label">月数</div>
+        <input type="number" min="1" value="1" placeholder="月" oninput="updateSvcTotal(this)">
+      </div>
+      <div class="svc-total-display">= 0万円</div>
+    </div>
+  `;
+  list.appendChild(item);
+}
+
+function removeService(btn) {
+  const list = btn.closest('.service-list');
+  if (list.children.length > 1) {
+    btn.closest('.service-item').remove();
+  }
+}
+
+function updateSvcTotal(el) {
+  const item = el.closest('.service-item');
+  const priceMan = parseFloat(item.querySelector('.svc-field:not(.months) input[type="number"]').value) || 0;
+  const months = parseInt(item.querySelector('.svc-field.months input').value) || 1;
+  const totalMan = priceMan * months;
+  item.querySelector('.svc-total-display').textContent = '= ' + totalMan.toLocaleString('ja-JP') + '万円';
+}
+
+function formatYen(n) {
+  return n.toLocaleString('ja-JP') + '円';
+}
+
+function calcSubsidy(costPerPerson, numPeople, size) {
+  const expenseRate = size === 'sme' ? 0.75 : 0.60;
+  const expenseCap = size === 'sme' ? 300000 : 200000;
+  const wagePerPerson = size === 'sme' ? 1000 * 10 : 500 * 10;
+
+  const expensePerPerson = Math.min(Math.floor(costPerPerson * expenseRate), expenseCap);
+  const totalExpense = expensePerPerson * numPeople;
+  const totalWage = wagePerPerson * numPeople;
+  const totalSubsidy = totalExpense + totalWage;
+
+  return { expenseRate, expenseCap, expensePerPerson, totalExpense, wagePerPerson, totalWage, totalSubsidy };
+}
+
+function getPlanData(suffix) {
+  const numPeople = parseInt(document.getElementById('numPeople_' + suffix).value) || 0;
+  const costPerPerson = getTrainingCost(suffix);
+  const serviceItems = document.querySelectorAll('#serviceList_' + suffix + ' .service-item');
+
+  const services = [];
+  let serviceTotalCost = 0;
+  serviceItems.forEach(item => {
+    const name = item.querySelector('.svc-row-name input').value.trim();
+    const priceMan = parseFloat(item.querySelector('.svc-field:not(.months) input[type="number"]').value) || 0;
+    const months = parseInt(item.querySelector('.svc-field.months input').value) || 1;
+    const cost = priceMan * 10000 * months;
+    if (name && cost > 0) {
+      services.push({ name, priceMan, months, cost });
+      serviceTotalCost += cost;
+    }
+  });
+
+  return { numPeople, costPerPerson, services, serviceTotalCost };
+}
+
+function buildResultCol(plan, label, size, sizeLabel) {
+  const totalCost = plan.numPeople * plan.costPerPerson;
+  const sub = calcSubsidy(plan.costPerPerson, plan.numPeople, size);
+
+  // 基本の実質負担 = 研修費用 - 助成額
+  const baseBurden = totalCost - sub.totalSubsidy;
+
+  // サービス費用 vs 研修費用の比較
+  const svcTotal = plan.serviceTotalCost;
+  let pool = 0;
+  let excess = 0;
+  let actualBurden = Math.max(baseBurden, 0);
+
+  if (svcTotal > totalCost) {
+    // ケース1: サービスが研修費用を超過 → 超過分は追加負担
+    excess = svcTotal - totalCost;
+    actualBurden = Math.max(baseBurden, 0) + excess;
+  } else if (svcTotal < totalCost && svcTotal > 0) {
+    // ケース2: サービスが研修費用を下回る → 差額をプール金として残高表示
+    pool = totalCost - svcTotal;
+  }
+
+  // Services HTML
+  let servicesHtml = '';
+  if (plan.services.length > 0) {
+    servicesHtml += '<h4>提供サービス内訳</h4>';
+    plan.services.forEach(s => {
+      const monthLabel = s.months > 1 ? `（${s.months}ヶ月）` : '';
+      servicesHtml += `<div class="r-svc-item">
+        <span>${s.name}${monthLabel}</span>
+        <span>${formatYen(s.cost)}</span>
+      </div>`;
+    });
+    servicesHtml += `<div class="r-svc-total">
+      <span>サービス合計（税込）</span><span>${formatYen(svcTotal)}</span>
+    </div>`;
+  }
+
+  // Pool / Excess badge
+  let badgeHtml = '';
+  if (pool > 0) {
+    badgeHtml = `<div class="pool-badge pool">プール金（残高）：${formatYen(pool)}</div>`;
+  } else if (excess > 0) {
+    badgeHtml = `<div class="pool-badge excess">超過分：+${formatYen(excess)}</div>`;
+  }
+
+  return {
+    actualBurden,
+    totalCost,
+    subsidy: sub.totalSubsidy,
+    sub,
+    pool,
+    excess,
+    svcTotal,
+    html: `
+      <div class="result-col">
+        <div class="result-plan-label">${label}</div>
+        <div class="r-label">企業規模</div>
+        <div class="r-value">${sizeLabel}</div>
+        <div class="r-label">対象人数</div>
+        <div class="r-value">${plan.numPeople}名</div>
+        <div class="r-label">研修費用 総額（税込）</div>
+        <div class="r-value">${formatYen(totalCost)}</div>
+
+        <div class="subsidy-breakdown">
+          <div class="subsidy-row">
+            <span>経費助成（${(sub.expenseRate * 100)}%・上限${formatYen(sub.expenseCap)}/人）</span>
+            <span>${formatYen(sub.totalExpense)}</span>
+          </div>
+          <div class="subsidy-row">
+            <span>賃金助成（${formatYen(sub.wagePerPerson)}/人 × ${plan.numPeople}名）</span>
+            <span>${formatYen(sub.totalWage)}</span>
+          </div>
+          <div class="subsidy-row total">
+            <span>助成額 合計</span>
+            <span>${formatYen(sub.totalSubsidy)}</span>
+          </div>
+        </div>
+
+        ${plan.services.length > 0 ? `<hr class="r-divider"><div class="r-services">${servicesHtml}</div>${badgeHtml}` : ''}
+
+        <hr class="r-divider">
+        <div class="r-label">実質負担額（税込）</div>
+        <div class="r-value accent">${formatYen(actualBurden)}</div>
+        ${excess > 0 ? `<div style="font-size:0.78rem; opacity:0.7;">（研修負担 ${formatYen(Math.max(baseBurden,0))} ＋ 研修費超過分 ${formatYen(excess)}）</div>` : ''}
+      </div>
+    `
+  };
+}
+
+function calculate() {
+  const size = document.querySelector('input[name="companySize"]:checked').value;
+  const sizeLabel = size === 'sme' ? '中小企業' : '大企業';
+
+  const planA = getPlanData('a');
+  const planB = getPlanData('b');
+
+  const resA = buildResultCol(planA, 'プラン A', size, sizeLabel);
+  const resB = buildResultCol(planB, 'プラン B', size, sizeLabel);
+
+  document.getElementById('resultColumns').innerHTML = resA.html + resB.html;
+
+  // Diff bar
+  const maxVal = Math.max(resA.actualBurden, resB.actualBurden, 1);
+  const pctA = Math.max(Math.round((resA.actualBurden / maxVal) * 100), 8);
+  const pctB = Math.max(Math.round((resB.actualBurden / maxVal) * 100), 8);
+  const diff = Math.abs(resA.actualBurden - resB.actualBurden);
+  const cheaper = resA.actualBurden <= resB.actualBurden ? 'プラン A' : 'プラン B';
+
+  document.getElementById('diffCard').innerHTML = `
+    <h3>実質負担額の比較（税込）</h3>
+    <div class="diff-bar-wrap">
+      <div class="diff-bar bar-a" style="width: ${pctA}%">${formatYen(resA.actualBurden)}</div>
+      <div class="diff-bar bar-b" style="width: ${pctB}%">${formatYen(resB.actualBurden)}</div>
+    </div>
+    <div class="diff-labels"><span>プラン A</span><span>プラン B</span></div>
+    ${diff > 0 ? `<div class="diff-savings">${cheaper} のほうが <strong>${formatYen(diff)}</strong> 負担額が少なくなります</div>` : '<div class="diff-savings">両プランの実質負担額は同じです</div>'}
+  `;
+
+  // Summary message
+  const better = resA.actualBurden <= resB.actualBurden
+    ? { plan: 'プラン A', data: planA, res: resA }
+    : { plan: 'プラン B', data: planB, res: resB };
+
+  const svcNames = better.data.services.map(s => s.name);
+  const svcText = svcNames.length > 0 ? svcNames.join('・') : '';
+  const msgDiv = document.getElementById('resMessage');
+
+  let msg = `<strong>${better.plan}</strong> の場合、リスキリング助成金を活用し研修を受けていただければ、<strong>実質負担 ${formatYen(better.res.actualBurden)}（税込）</strong>で`;
+  if (svcText) {
+    msg += `研修と <strong>${svcText}</strong> のサービスを受けていただくことができます。`;
+  } else {
+    msg += `研修を受けていただくことができます。`;
+  }
+  if (better.res.pool > 0) {
+    msg += `<br>さらに <strong>${formatYen(better.res.pool)}</strong> がプール金として残ります。`;
+  }
+  msgDiv.innerHTML = msg;
+
+  const area = document.getElementById('resultArea');
+  area.classList.remove('show');
+  void area.offsetWidth;
+  area.classList.add('show');
+  area.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function exportPDF() {
+  window.print();
+}
+</script>
+
+</body>
+</html>
