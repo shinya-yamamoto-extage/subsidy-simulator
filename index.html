@@ -411,6 +411,16 @@
     accent-color: #1b3a6b; cursor: pointer;
   }
   .checklist-item .cl-text { flex: 1; }
+  .checklist-item .cl-note {
+    margin-top: 6px;
+    padding: 8px 12px;
+    background: #fff8e6;
+    border-left: 3px solid #f5c518;
+    border-radius: 0 6px 6px 0;
+    font-size: 0.8rem;
+    color: #8a6d00;
+    line-height: 1.5;
+  }
   .checklist-item .cl-sub {
     margin-top: 6px;
     padding-left: 16px;
@@ -712,21 +722,23 @@
       <div class="checklist-item">
         <input type="checkbox" id="cl1">
         <div class="cl-text">
-          <label for="cl1">パート・アルバイトの方が雇用保険に加入しているかどうか</label>
+          <label for="cl1">パート・アルバイトの方は雇用保険に加入していますか？</label>
+          <div class="cl-note">加入がない場合は助成金対象外</div>
         </div>
       </div>
 
       <div class="checklist-item">
         <input type="checkbox" id="cl2">
         <div class="cl-text">
-          <label for="cl2">残業時間・勤務時間外・休日出勤として以外の日程で研修を設定できているかどうか</label>
+          <label for="cl2">残業時間・勤務時間外・休日出勤として以外の日程で研修を設定できていますか？</label>
+          <div class="cl-note">勤務時間以外での受講は助成金対象外となる可能性あり</div>
         </div>
       </div>
 
       <div class="checklist-item">
         <input type="checkbox" id="cl3">
         <div class="cl-text">
-          <label for="cl3">原則1箇所で研修を受けることができるかどうか</label>
+          <label for="cl3">原則1箇所で研修を受けることができますか？</label>
           <div class="cl-sub">
             <label>
               <input type="checkbox" id="cl3a">
@@ -737,20 +749,31 @@
               リモートで受ける場合、リモートワーク契約を締結しているかどうか
             </label>
           </div>
+          <div class="cl-note">抜き打ち現地調査があった際、申請があった場所にて研修受講していないと助成金対象外</div>
         </div>
       </div>
 
       <div class="checklist-item">
         <input type="checkbox" id="cl4">
         <div class="cl-text">
-          <label for="cl4">研修費用のお支払いは、研修が始まる日までにお振込みいただくこと</label>
+          <label for="cl4">研修費用のお支払いは、研修が始まる日までにお振込みいただけますか？</label>
+          <div class="cl-note">研修費用をお支払いいただいてからサポート開始となります</div>
         </div>
       </div>
 
       <div class="checklist-item">
         <input type="checkbox" id="cl5">
         <div class="cl-text">
-          <label for="cl5">各研修、8割以上の時間を受講しないと助成対象にならない点について、了承をいただいているかどうか</label>
+          <label for="cl5">各研修8割以上の時間を受講しないと助成対象にならない点について、了承をいただいてますか？</label>
+          <div class="cl-note">いかなる理由でも8割を満たしていないと助成金対象外となります</div>
+        </div>
+      </div>
+
+      <div class="checklist-item">
+        <input type="checkbox" id="cl6">
+        <div class="cl-text">
+          <label for="cl6">最終的な給付可否は行政が行いますので、弊社が助成金給付を保証することはできない旨について、了承をいただいてますか？</label>
+          <div class="cl-note">100%給付されるということはありえません。給付されないというリスクもご理解いただいてください</div>
         </div>
       </div>
     </div>
